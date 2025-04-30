@@ -1,206 +1,181 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Navigation System</title>
+    <title>Campus Map</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%; /* Ensure full height */
-            overflow: hidden; /* Prevent scrollbars */
+        #map {
+            height: 100vh;
         }
-
-        #logo {
-    position: absolute; /* Use absolute positioning */
-    top: 20px; /* Distance from the top */
-    left: 20px; /* Distance from the left */
-    z-index: 10; /* Make sure it appears above other elements */
-}
-
-#logo img {
-    width: 350px; /* Set the desired width for the logo */
-    height: 150px; /* Maintain aspect ratio */
-}
-
-        #mapContainer {
-            position: relative;
-            width: 100%; /* Full parent width */
-            height: 100%; /* Full parent height */
-            display: flex;
-            justify-content: center; /* Center content */
-            align-items: center; /* Center content */
+        .label-icon {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            text-shadow: 1px 1px 2px #fff;
         }
-
-        #floorPlan {
-            width: auto; /* Automatic width to maintain aspect ratio */
-            height: 70%; /* Fill the height of the container */
-            max-width: 100%;  /* Prevent overflow */
-            object-fit: contain; /* Maintain aspect ratio */
-            position: relative;
+        .search-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            z-index: 1000;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
-        
-        #searchContainer {
-        position: absolute;
-        top: 20px; /* Distance from the top */
-        right: 20px; /* Distance from the right */
-        z-index: 10; /* Place above the map */
-      }
-
-        #searchInput {
-        padding: 10px;
-        border-radius: 5px;
-        width: 200px; /* Fixed width for input */
-        height: 20px;
-      }
-
-      .path {
-    position: absolute;
-    width: 0; /* Initial width */
-    height: 0; /* Initial height */
-    border-left: 4px solid blue; /* Line color */
-    border-top: 4px solid transparent; /* Top triangle */
-    border-bottom: 4px solid transparent; /* Bottom triangle */
-    z-index: 5; /* Ensure the path is above the map */
-    /* Position the path depending on your layout */
-    left: 20%; /* Starting point of the path */
-    top: 40%; /* Starting point of the path */
-    height: 100px; /* Adjust height based on your path */
-    transform: rotate(45deg); /* Rotate to make it diagonal */
-}
-
-/* Additional adjustments for better visuals, this can be customized further */
-.path::after {
-    content: '';
-    position: absolute;
-    top: 100%; /* Position it below the main line */
-    left: -50%; /* Align end of line towards the bottom */
-    border-left: 4px solid blue; /* Continuation of the blue line */
-    width: 150px; /* Length of the path */
-    height: 0;
-}
-
     </style>
 </head>
 <body>
-  <h1 id="logo">
-    <img src="Landforms Map Science Game Presentation in Pastel Fun Style (3).jpg" alt="logo">
-</h1>
 
-    <div id="mapContainer">
-        <img id="floorPlan" src="map campus.jpg.jpg" alt="Campus Map"/>
-        
-        <div class="marker" style="left: 100px; top: 150px;" title="Main Building" data-info="Main Building: Admin and Classes"></div>
-        <div class="marker" style="left: 300px; top: 200px;" title="Library" data-info="Library: Books and Study Rooms"></div>
-        <div class="marker" style="left: 500px; top: 250px;" title="Cafeteria" data-info="Cafeteria: Food and Beverages"></div>
-    </div>
+<div id="map"></div>
 
-    <div class="marker" style="left: 10%; top: 25%;" title="Main Building" data-info="Main Building: Admin and Classes" data-location="Main Building">MB</div>
-    <div class="marker" style="left: 40%; top: 30%;" title="Library" data-info="Library: Books and Study Rooms" data-location="Library">LIB</div>
-    <div class="marker" style="left: 70%; top: 40%;" title="Cafeteria" data-info="Cafeteria: Food and Beverages" data-location="Cafeteria">CAF</div>
-    
-    <script src="script.js"></script>
-
-    <!-- Existing markers -->
-    <!-- Markers for each location -->
-    <div class="marker" style="left: 5%; top: 90%;" title="Entrance" data-location="Entrance">E</div>
-    <div class="marker" style="left: 40%; top: 30%;" title="Del Pilar Building" data-location="Del Pilar">DP</div>
-    <div class="marker" style="left: 50%; top: 30%;" title="Bonifacio Building" data-location="Bonifacio">B</div>
-    <div class="marker" style="left: 60%; top: 50%;" title="Mabini Building" data-location="Mabini">M</div>
-    <div class="marker" style="left: 60%; top: 70%;" title="Gym" data-location="Gym">G</div>
-    <div class="marker" style="left: 15%; top: 50%;" title="Rizal Building" data-location="Rizal">R</div>
-    <div class="marker" style="left: 15%; top: 40%;" title="Centennial Garden" data-location="Centennial Garden">CG</div>
-    <div id="controls">
-      <button id="zoomIn">Zoom In</button>
-      <button id="zoomOut">Zoom Out</button>
-  </div>
-
-  <div id="searchContainer">
-    <input type="text" id="searchInput" placeholder="Search for a location..." />
+<div class="search-panel">
+    <h3>Find your route</h3>
+    <label>From:</label><br>
+    <select id="from">
+        <option value="gym">Gym</option>
+        <option value="mabini">Mabini</option>
+        <option value="bonifacio">Bonifacio</option>
+        <option value="delpilar">Del Pilar</option>
+        <option value="rizal">Rizal</option>
+        <option value="garden">Centennial Garden</option>
+        <option value="entrance1">Entrance 1</option>
+        <option value="entrance2">Entrance 2</option>
+        <option value="parking1">Parking 1</option>
+        <option value="parking2">Parking 2</option>
+    </select><br><br>
+    <label>To:</label><br>
+    <select id="to">
+        <option value="gym">Gym</option>
+        <option value="mabini">Mabini</option>
+        <option value="bonifacio">Bonifacio</option>
+        <option value="delpilar">Del Pilar</option>
+        <option value="rizal">Rizal</option>
+        <option value="garden">Centennial Garden</option>
+        <option value="entrance1">Entrance 1</option>
+        <option value="entrance2">Entrance 2</option>
+        <option value="parking1">Parking 1</option>
+        <option value="parking2">Parking 2</option>
+    </select><br><br>
+    <button onclick="drawRoute()">Search Route</button>
 </div>
 
-
-
-</div>
-
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-  const floorPlan = document.getElementById('floorPlan');
-  const zoomInButton = document.getElementById('zoomIn');
-  const zoomOutButton = document.getElementById('zoomOut');
-  let scale = 1; // Initial scale
+    // Initialize the map
+    const map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -1
+    });
 
-  const locations = {
-            "entrance": { x: 5, y: 90 },
-            "mabini": { x: 60, y: 50 },
-            "gym": { x: 60, y: 70 },
-            "del pilar": { x: 40, y: 30 },
-            "bonifacio": { x: 50, y: 30 },
-            "rizal": { x: 15, y: 50 },
-            "centennial garden": { x: 15, y: 40 },
-        };
+    const bounds = [[0,0], [800,1000]]; // adjust based on your map image size
+    const image = L.imageOverlay('map campus.jpg', bounds).addTo(map);
+    map.fitBounds(bounds);
 
-                // Function to draw the path
-                function drawPath(start, end) {
-            svgPath.innerHTML = ''; // Clear previous path
-            const startCoords = locations[start.toLowerCase()];
-            const endCoords = locations[end.toLowerCase()];
+    // Function to add labels
+    function addLabel(latlng, text) {
+        L.marker(latlng, {
+            icon: L.divIcon({
+                className: 'label-icon',
+                html: text,
+                iconSize: [90, 30],
+                iconAnchor: [50, 20]
+            })
+        }).addTo(map);
+    }
 
-            if (startCoords && endCoords) {
-                const pathData = `M${startCoords.x} ${startCoords.y} L${endCoords.x} ${endCoords.y}`;
-                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                path.setAttribute("d", pathData);
-                path.setAttribute("class", "path");
-                svgPath.appendChild(path);
-            }
+    // Now, add building labels
+    addLabel([620, 580], "GYM");
+    addLabel([655, 775], "MABINI");
+    addLabel([400, 750], "BONIFACIO");
+    addLabel([200, 745], "DEL PILAR");
+    addLabel([290, 275], "RIZAL");
+    addLabel([380, 75], "CENTENNIAL GARDEN");
+    addLabel([340, 490], "(1)PARKING");
+    addLabel([285, 880], "(2)PARKING");
+    addLabel([10, 545], "(1)ENTRANCE");
+    addLabel([750, 640], "(2)ENTRANCE");
+
+ // Building positions
+ const locations = {
+        gym: [640, 550],
+        mabini: [675, 760],
+        bonifacio: [420, 750],
+        delpilar: [220, 745],
+        rizal: [310, 255],
+        garden: [400, 75],
+        entrance1: [30, 550],
+        entrance2: [770, 640],
+        parking1: [360, 490],
+        parking2: [300, 870]
+    };
+
+    for (const key in locations) {
+        L.marker(locations[key]).addTo(map).bindPopup(key.toUpperCase());
+    }
+
+    let routeLine; // to store the blue line
+
+    function drawRoute() {
+        const from = document.getElementById('from').value;
+        const to = document.getElementById('to').value;
+
+        if (from === to) {
+            alert('Please select two different locations.');
+            return;
         }
 
-  // Function to zoom in
-  function zoomIn() {
-      scale += 0.1; // Increase scale
-      floorPlan.style.transform = `scale(${scale})`; // Apply new scale
-  }
+        if (routeLine) {
+            map.removeLayer(routeLine);
+        }
 
-  // Function to zoom out
-  function zoomOut() {
-      scale = Math.max(0.1, scale - 0.1); // Decrease scale but not below 0.1
-      floorPlan.style.transform = `scale(${scale})`; // Apply new scale
-  }
+        const path = [
+            locations[from],
+            locations[to]
+        ];
 
-  // Add event listeners to buttons
-  zoomInButton.addEventListener('click', zoomIn);
-  zoomOutButton.addEventListener('click', zoomOut);
+        routeLine = L.polyline(path, {color: 'blue', weight: 5}).addTo(map);
+        map.fitBounds(routeLine.getBounds());
+    }
 
-  // Optional: Zoom with mouse wheel
-  mapContainer.addEventListener('wheel', function(event) {
-      event.preventDefault();
-      if (event.deltaY < 0) {
-          zoomIn(); // Zoom in on scroll up
-      } else {
-          zoomOut(); // Zoom out on scroll down
-      }
-  });
-  
-  // Add event listeners to markers
-  document.querySelectorAll('.marker').forEach(marker => {
-      marker.addEventListener('click', function() {
-          alert(this.getAttribute('data-info')); // Show information from data attribute
-      });
-  });
+    // Function to generate a zigzag path
+    function getZigzagPath(from, to) {
+        const fromCoords = locations[from];
+        const toCoords = locations[to];
 
-            // Search functionality
-        searchInput.addEventListener('input', function () {
-            const query = this.value.toLowerCase();
-            const pathMatch = query.match(/(entrance|del pilar|bonifacio|mabini|gym|rizal|centennial garden) to (.+)/);
-            if (pathMatch) {
-                const start = pathMatch[1]; // Get start location (e.g., entrance)
-                const end = pathMatch[2].trim(); // Get end location (e.g., Mabini)
-                drawPath(start, end);
-            } else {
-                svgPath.innerHTML = ''; // Clear path if query is not valid
-            }
-        });
+        const midPointX = (fromCoords[0] + toCoords[0]) / 2;
+        const midPointY = (fromCoords[1] + toCoords[1]) / 2;
 
+        // Create a zigzag path with multiple points
+        return [
+            fromCoords,
+            [midPointX, fromCoords[1]], // horizontal move
+            [midPointX, toCoords[1]], // vertical move
+            toCoords
+        ];
+    }
+
+    // Function to draw the route (updated to zigzag)
+    function drawRoute() {
+        const from = document.getElementById('from').value;
+        const to = document.getElementById('to').value;
+
+        if (from === to) {
+            alert('Please select two different locations.');
+            return;
+        }
+
+        if (routeLine) {
+            map.removeLayer(routeLine);
+        }
+
+        const zigzagPath = getZigzagPath(from, to);
+
+        routeLine = L.polyline(zigzagPath, {color: 'blue', weight: 5}).addTo(map);
+        map.fitBounds(routeLine.getBounds());
+    }
 </script>
+
 </body>
 </html>
